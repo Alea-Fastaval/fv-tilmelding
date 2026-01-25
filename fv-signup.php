@@ -101,6 +101,7 @@ class FVSignup {
       wp_enqueue_script('fv-signup-script-payment', plugin_dir_url(__FILE__)."scripts/payment.js", array( 'jquery' ), filemtime(plugin_dir_path(__FILE__)."scripts/payment.js"));
 
       // Module scripts
+      wp_enqueue_script('fv-signup-script-module-pronouns', plugin_dir_url(__FILE__)."scripts/module_pronouns.js", array( 'jquery' ), filemtime(plugin_dir_path(__FILE__)."scripts/module_pronouns.js"));
       wp_enqueue_script('fv-signup-script-module-food', plugin_dir_url(__FILE__)."scripts/module_food.js", array( 'jquery' ), filemtime(plugin_dir_path(__FILE__)."scripts/module_food.js"));
       wp_enqueue_script('fv-signup-script-module-activities', plugin_dir_url(__FILE__)."scripts/module_activities.js", array( 'jquery' ), filemtime(plugin_dir_path(__FILE__)."scripts/module_activities.js"));
       wp_enqueue_script('fv-signup-script-logic-activities', plugin_dir_url(__FILE__)."scripts/logic_activities.js", array( 'jquery' ), filemtime(plugin_dir_path(__FILE__)."scripts/logic_activities.js"));
@@ -109,7 +110,7 @@ class FVSignup {
       wp_enqueue_script('fv-signup-script-module-hero', plugin_dir_url(__FILE__)."scripts/module_hero.js", array( 'jquery' ), filemtime(plugin_dir_path(__FILE__)."scripts/module_hero.js"));
 
       // Render scripts from Infosys
-      wp_enqueue_script('fv-signup-script-infosys-render', $settings['infosys_url']."/js/signup/render.js?", array( 'jquery' ), 11);
+      wp_enqueue_script('fv-signup-script-infosys-render', $settings['infosys_url']."/js/signup/render.js?", array( 'jquery' ), 12);
       wp_enqueue_script('fv-signup-script-infosys-process', $settings['infosys_url']."/js/signup/preprocess.js", array( 'jquery' ), 7);
 
       // Styles
