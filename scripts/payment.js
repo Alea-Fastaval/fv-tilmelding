@@ -171,14 +171,22 @@ class FVSignupPayment {
     )
   }
 
-  static goto_payment() {
+  static goto_payment(button) {
+    let lang = FVSignup.get_lang();
+    
     this.post(
       '/payment/create',
       this.get_info(),
       function(response) {
+        button.prop('disabled', false);
+        button.prop('vlaue', FVSignupPayment.config.pay_button[lang]);
+  
         window.open(response.url, '_blank').focus();
       },
       function(response) {
+        button.prop('disabled', false);
+        button.prop('vlaue', FVSignupPayment.config.pay_button[lang]);
+
         if (response.message == 'no payment needed') {
           alert(FVSignupPayment.config.already_paid[FVSignup.get_lang()])
           return;
@@ -270,7 +278,10 @@ class FVSignupPayment {
     let pay_button = jQuery(`<button>${this.config.pay_button[lang]}</button>`);
     this.explanation_div.append(pay_button);
     pay_button.on('click', function() {
-      FVSignupPayment.goto_payment();
+      pay_button.prop('disabled', true);
+      pay_button.prop('vlaue', FVSignupPayment.config.wait[lang]);
+
+      FVSignupPayment.goto_payment(pay_button);
     });
   }
 

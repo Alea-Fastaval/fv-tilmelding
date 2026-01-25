@@ -99,7 +99,10 @@ class FVSignupModuleSubmit {
 
     pay_button = this.confirm_page.find(`#${button_id}`);
     pay_button.click(function() {
-       FVSignupPayment.goto_payment();
+      pay_button.prop('disabled', true);
+      pay_button.prop('value', FVSignupPayment.config.wait[lang]);
+
+      FVSignupPayment.goto_payment(pay_button);
     })
 
     this.confirm_page.append('<p>'+this.config.create_new[lang]+'</p>');

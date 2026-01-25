@@ -48,10 +48,10 @@ class FVSignup {
     
     jQuery(window).on('popstate', function(evt) {
       let page = evt.originalEvent.state.page;
-      // if (page == 'payment') {
-      //   FVSignupPayment.show_payment();
-      //   return;  
-      // }
+      if (page == 'payment') {
+        FVSignupPayment.show_payment();
+        return;  
+      }
 
       if (page == 'paynow') {
         FVSignupPayment.payment_redirect();
@@ -68,11 +68,11 @@ class FVSignup {
       }
     }
 
-    // if (fv_signup_settings.start_page == 'payment') {
-    //   fv_signup_settings.start_page = null;
-    //   FVSignupPayment.show_payment();
-    //   return;
-    // }
+    if (fv_signup_settings.start_page == 'payment') {
+      fv_signup_settings.start_page = null;
+      FVSignupPayment.show_payment();
+      return;
+    }
 
     if (fv_signup_settings.start_page == 'paynow') {
       fv_signup_settings.start_page = null;
