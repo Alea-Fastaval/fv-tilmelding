@@ -116,7 +116,7 @@ class FVSignupModulePronouns {
   static get_submission() {
     let val = this.pronoun1.val()
 
-    if (val != "none" || val != "ask") {
+    if (val != "none" && val != "ask") {
       val += this.pronoun2.val()
     }
 
