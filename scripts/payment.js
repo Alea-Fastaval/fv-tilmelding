@@ -68,7 +68,7 @@ class FVSignupPayment {
 
     let return_button__text = this.config.return_button[lang];
     let return_button = jQuery(`<button>${return_button__text}</button>`);
-    return_button.on('click', function() {
+    return_button.on('click', function () {
       FVSignup.hide_all();
       FVSignup.show_signup();
     })
@@ -78,7 +78,7 @@ class FVSignupPayment {
   static show_payment() {
     FVSignup.hide_all();
 
-    if(this.payment_page == undefined) {
+    if (this.payment_page == undefined) {
       this.init_payment_page();
     } else {
       this.page_ready();
@@ -87,9 +87,9 @@ class FVSignupPayment {
     // Scroll to top
     window.scrollTo(0, 0);
     window.dispatchEvent(new CustomEvent('scroll')) // Reset top menu
-    
+
     // Set addressbar
-    window.history.pushState({page:"payment"},"", FVSignup.get_base_url()+"payment/");
+    window.history.pushState({ page: "payment" }, "", FVSignup.get_base_url() + "payment/");
   }
 
   static page_ready() {
@@ -118,11 +118,11 @@ class FVSignupPayment {
       );
       let login_button = jQuery(`<button>${this.config.load[lang]}</button>`);
       this.explanation_div.append(login_button);
-      login_button.on('click', function() {
+      login_button.on('click', function () {
         FVSignupPayment.click_login();
       })
 
-      this.explanation_div.find('input').on('keypress', function(evt) {
+      this.explanation_div.find('input').on('keypress', function (evt) {
         if (evt.originalEvent.key == "Enter") login_button.click();
       })
     }
@@ -135,15 +135,15 @@ class FVSignupPayment {
       url: FVSignup.get_infosys_url() + path,
       type: 'POST',
       data,
-      success: function(response) {
+      success: function (response) {
         if (response.status == 'success') {
           success_callcack(response);
         } else {
-          error_callback == null ? FVSignup.com_error(): error_callback(response);
+          error_callback == null ? FVSignup.com_error() : error_callback(response);
         }
       },
-      error: function(jqXHR, status, error) {
-        error_callback == null ? FVSignup.com_error(): error_callback(jqXHR.responseJSON);
+      error: function (jqXHR, status, error) {
+        error_callback == null ? FVSignup.com_error() : error_callback(jqXHR.responseJSON);
       }
     })
   }
@@ -160,7 +160,7 @@ class FVSignupPayment {
       function (response) {
         FVSignupPayment.login_response(response.totals);
       },
-      function(response) {
+      function (response) {
         if (response.message == 'wrong credentials') {
           alert(FVSignupPayment.config.invalid_login[FVSignup.get_lang()]);
           return;
@@ -173,28 +173,28 @@ class FVSignupPayment {
 
   static goto_payment(button) {
     let lang = FVSignup.get_lang();
-    
+
     this.post(
       '/payment/create',
       this.get_info(),
-      function(response) {
+      function (response) {
         button.prop('disabled', false);
         button.prop('vlaue', FVSignupPayment.config.pay_button[lang]);
-  
+
         window.open(response.url, '_blank').focus();
       },
-      function(response) {
+      function (response) {
         button.prop('disabled', false);
         button.prop('vlaue', FVSignupPayment.config.pay_button[lang]);
 
         if (response.message == 'no payment needed') {
           alert(FVSignupPayment.config.already_paid[FVSignup.get_lang()])
           return;
-        } 
+        }
         if (response.message == 'unconfirmed payments') {
           alert(FVSignupPayment.config.pending_payment[FVSignup.get_lang()])
           return;
-        } 
+        }
         console.log(response);
         FVSignup.com_error();
       }
@@ -209,16 +209,16 @@ class FVSignupPayment {
     }
 
     let hash = params.get('hash');
-    
+
     this.post(
       '/payment/create',
       {
         hash: hash,
       },
-      function(response) {
+      function (response) {
         window.location.href = response.url;
       },
-      function(response) {
+      function (response) {
         if (response.message == 'no payment needed') {
           alert(FVSignupPayment.config.already_paid[FVSignup.get_lang()])
         } else if (response.message == 'unconfirmed payments') {
@@ -238,7 +238,7 @@ class FVSignupPayment {
     this.post(
       '/payment/cancel',
       { token: this.token },
-      function() {}
+      function () { }
     );
   }
 
@@ -246,7 +246,7 @@ class FVSignupPayment {
     this.post(
       '/payment/status',
       { token: this.token },
-      function(response) {
+      function (response) {
         FVSignupPayment.payment_status_response(response.payment_status);
       }
     )
@@ -254,10 +254,10 @@ class FVSignupPayment {
 
   static login_response(totals) {
     let lang = FVSignup.get_lang();
-    
+
     let pay_text = this.config.payment_text[lang].replaceAll('[TOTAL]', totals.signup);
     this.explanation_div.html(`<p>${pay_text}</p>`);
-    
+
     let due_total = totals.signup;
     if (totals.paid > 0) {
       due_total -= totals.paid;
@@ -266,7 +266,7 @@ class FVSignupPayment {
         this.explanation_div.append(`<p>${this.config.already_paid[lang]}</p>`);
         return;
       }
-      
+
       let extra_text = this.config.payment_extra[lang];
       extra_text = extra_text.replaceAll('[PAIDTOTAL]', totals.paid);
       extra_text = extra_text.replaceAll('[DUETOTAL]', due_total);
@@ -277,7 +277,7 @@ class FVSignupPayment {
 
     let pay_button = jQuery(`<button>${this.config.pay_button[lang]}</button>`);
     this.explanation_div.append(pay_button);
-    pay_button.on('click', function() {
+    pay_button.on('click', function () {
       pay_button.prop('disabled', true);
       pay_button.prop('vlaue', FVSignupPayment.config.wait[lang]);
 
@@ -287,11 +287,11 @@ class FVSignupPayment {
 
   static payment_status_response(status) {
     let lang = FVSignup.get_lang();
-    
+
     let run_spinner = false;
     switch (status) {
       case 'pending':
-        setTimeout(function() {
+        setTimeout(function () {
           FVSignupPayment.check_payment_status()
         }, 2000);
         run_spinner = true;
@@ -310,8 +310,8 @@ class FVSignupPayment {
     }
 
     if (run_spinner && this.interval_id == undefined) {
-      this.interval_id = setInterval(function() {
-        FVSignupPayment.animate_spinner()          
+      this.interval_id = setInterval(function () {
+        FVSignupPayment.animate_spinner()
       }, 33);
       this.spinner.show();
     }
@@ -328,6 +328,6 @@ class FVSignupPayment {
     this.spinner_position++;
     this.spinner_position %= 30;
 
-    this.spinner.css('transform', `translate(${30*this.spinner_position}%)`);
+    this.spinner.css('transform', `translate(${30 * this.spinner_position}%)`);
   }
 }

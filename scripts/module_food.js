@@ -11,14 +11,14 @@ class FVSignupModuleFood {
     element.append(this.div);
 
     jQuery.getJSON({
-      url: fv_signup_settings.infosys_url+"/api/signup/food",
+      url: fv_signup_settings.infosys_url + "/api/signup/food",
       success: function (info) {
         FVSignupModuleFood.info = info;
         if (FVSignupModuleFood.config) FVSignupModuleFood.render_food();
       }
     }).fail(function () {
       FVSignup.com_error();
-    }).always(function (){
+    }).always(function () {
       callback();
     });
 
@@ -47,7 +47,7 @@ class FVSignupModuleFood {
 
       for (const [cat_id, food_cat] of Object.entries(food_info.categories)) {
         let cat_split = food_cat[lang].split(':');
-        
+
         let cat_text = cat_split[0];
 
         let cell = selection_row.find(`td[cat="${cat_text}"]`)
@@ -60,7 +60,7 @@ class FVSignupModuleFood {
             cell.css('white-space', 'nowrap');
           }
         }
-        
+
         let food = foods[cat_id];
         if (food === undefined) continue;
 
@@ -69,16 +69,16 @@ class FVSignupModuleFood {
         }
 
         let checkbox_wrapper = InfosysSignupRender.render_checkbox({
-          infosys_id: "food:"+food.id, 
+          infosys_id: "food:" + food.id,
           processed: food.text[lang]
         });
-        
+
         let checkbox = checkbox_wrapper.find('input');
         checkbox.attr('submit-text', `${day_text}: ${cat_text}`)
         checkbox.attr('submit-value', `${food.text[lang]} ({price} ${FVSignup.config.dkk[lang]})`)
         checkbox.attr('food-category', cat_id);
 
-        if (food_cat.exclude) checkbox.change(function() {
+        if (food_cat.exclude) checkbox.change(function () {
           if (!checkbox.prop('checked')) return; // Only do something if we enabled the checkbox
 
           let row = checkbox.closest('tr');
@@ -117,7 +117,7 @@ class FVSignupModuleFood {
         let breakfast = this.config.breakfast[lang];
         let dinner = this.config.dinner[lang];
         let remaining = this.config.remaining[lang];
-        
+
         let breakfast_remaining = `${breakfast} ${remaining}: ${entry.breakfast_remaining}`;
         let dinner_remaining = `${dinner} ${remaining}: ${entry.dinner_remaining}`;
 
@@ -132,7 +132,7 @@ class FVSignupModuleFood {
       }
     } else {
       let id = entry.key.replaceAll(':', '\\:');
-      text = jQuery('label[for='+id+']').text().replace(':','');
+      text = jQuery('label[for=' + id + ']').text().replace(':', '');
     }
 
     return [text, value];

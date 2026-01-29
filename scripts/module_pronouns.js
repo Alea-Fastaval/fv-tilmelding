@@ -3,29 +3,29 @@
 class FVSignupModulePronouns {
 
   static single_pronouns = {
-    none : {
+    none: {
       text: { en: "None", da: "Ingen" },
       default: true
     },
-    ns : { // Neutral Subject
+    ns: { // Neutral Subject
       text: { en: "They", da: "De" },
     },
-    no : { // Neutral Object
+    no: { // Neutral Object
       text: { en: "Them", da: "Dem" },
     },
-    fs : { // Feminine Subject
+    fs: { // Feminine Subject
       text: { en: "She", da: "Hun" },
     },
-    fo : { // Feminine Object
+    fo: { // Feminine Object
       text: { en: "Her", da: "Hende" },
     },
-    ms : { // Masculine Subject
+    ms: { // Masculine Subject
       text: { en: "He", da: "Han" },
     },
-    mo : { // Masculine Object
+    mo: { // Masculine Object
       text: { en: "Him", da: "Ham" },
     },
-    ask : {
+    ask: {
       text: { en: "Ask me", da: "Spørg mig" },
     }
   }
@@ -41,17 +41,17 @@ class FVSignupModulePronouns {
       let option = element
       option.value = key
       options.push(option)
-    } 
+    }
 
-    let select ={
+    let select = {
       infosys_id: "pronouns1",
-      options : options,
+      options: options,
     }
 
     this.pronoun1 = InfosysSignupRender.render_select_input(select, lang)
-    
+
     this.divider = jQuery("<p>/</p>")
-    
+
     select.infosys_id = "pronouns2"
     select.options.shift()
     select.options.pop()
@@ -61,7 +61,7 @@ class FVSignupModulePronouns {
       default: true,
     })
     this.pronoun2 = InfosysSignupRender.render_select_input(select, lang)
-    
+
 
     wrapper.append(this.pronoun1)
     wrapper.append(this.divider)
@@ -89,8 +89,8 @@ class FVSignupModulePronouns {
     }
 
     // Did we unhide the 2nd select?
-    if (part2_hidden && !this.pronoun2.is(':hidden'))  {
-      let pair = { ns : "no", fs : "fo", ms : "mo" }
+    if (part2_hidden && !this.pronoun2.is(':hidden')) {
+      let pair = { ns: "no", fs: "fo", ms: "mo" }
 
       // Set 2nd select to most common pair
       if (pair[val]) {
@@ -107,7 +107,7 @@ class FVSignupModulePronouns {
   }
 
   static update_select(val, select) {
-    select.find('option').each(( _ , option) => {
+    select.find('option').each((_, option) => {
       option = jQuery(option)
       option.prop('disabled', option.val() == val)
     })
@@ -120,7 +120,7 @@ class FVSignupModulePronouns {
       val += this.pronoun2.val()
     }
 
-    return { pronouns : val }
+    return { pronouns: val }
   }
 
   static get_confirm(entry) {
@@ -140,8 +140,8 @@ class FVSignupModulePronouns {
     }
 
     if (value.length == 4) {
-      let part1 = value.substring(0,2)
-      let part2 = value.substring(2,4)
+      let part1 = value.substring(0, 2)
+      let part2 = value.substring(2, 4)
 
       if (this.single_pronouns[part1] && this.single_pronouns[part2]) {
         let value = this.single_pronouns[part1].text[lang]
@@ -171,8 +171,8 @@ class FVSignupModulePronouns {
     }
 
     if (value && value.length == 4) {
-      let part1 = value.substring(0,2)
-      let part2 = value.substring(2,4)
+      let part1 = value.substring(0, 2)
+      let part2 = value.substring(2, 4)
 
       if (this.single_pronouns[part1] && this.single_pronouns[part2]) {
         this.pronoun1.val(part1)
@@ -187,7 +187,7 @@ class FVSignupModulePronouns {
     this.pronoun1.val("none")
     this.change1()
     return
-  }  
+  }
 }
 
 FVSignup.register_module('pronouns', FVSignupModulePronouns);

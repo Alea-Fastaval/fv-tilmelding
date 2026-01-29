@@ -7,7 +7,7 @@ class FVSignupStorage {
   static init(element) {
     this.element = element;
 
-    FVSignup.load_config('storage', function(config) {
+    FVSignup.load_config('storage', function (config) {
       FVSignupStorage.config = config;
       FVSignupStorage.render_controls();
     })
@@ -16,14 +16,14 @@ class FVSignupStorage {
   static render_controls() {
     let lang = FVSignup.get_lang();
 
-    let controls_header = jQuery('<h3 class="foldout">'+this.config.header[lang]+'</h3>');
+    let controls_header = jQuery('<h3 class="foldout">' + this.config.header[lang] + '</h3>');
     this.element.append(controls_header);
 
     let controls_content = jQuery('<div id="storage-controls-content"></div>');
     controls_content.hide();
     this.element.append(controls_content);
 
-    controls_header.click(function() {
+    controls_header.click(function () {
       controls_content.toggle();
       if (controls_content.is(":visible")) {
         controls_header.addClass('open');
@@ -32,7 +32,7 @@ class FVSignupStorage {
       }
     })
 
-    controls_content.append('<p>'+this.config.from_server[lang]+':</p>');
+    controls_content.append('<p>' + this.config.from_server[lang] + ':</p>');
     let load_wrapper = jQuery('<div id="load-signup-wrapper"></div>');
     load_wrapper.append(`
       <div id="load-signup-id-wrapper">
@@ -49,8 +49,8 @@ class FVSignupStorage {
     let load_button = jQuery(`<button>${this.config.load[lang]}</button>`);
     load_wrapper.append(load_button);
 
-    load_wrapper.find('input').keypress(function(evt) {
-      if(evt.originalEvent.key == "Enter") load_button.click();      
+    load_wrapper.find('input').keypress(function (evt) {
+      if (evt.originalEvent.key == "Enter") load_button.click();
     })
 
     load_button.click(function () {
@@ -65,42 +65,42 @@ class FVSignupStorage {
       jQuery.ajax({
         type: "POST",
         dataType: "json",
-        url: FVSignup.get_infosys_url()+"/api/signup/load",
+        url: FVSignup.get_infosys_url() + "/api/signup/load",
         data: data,
         success: function (result) {
           if (result.errors.length > 0) {
             FVSignup.com_error();
-            return;  
+            return;
           }
           FVSignupStorage.load_from_server(result.signup);
           FVSignupModuleSubmit.set_info(result.signup.id, pass);
           alert(FVSignupStorage.config.load_success[lang]);
           controls_content.hide();
           controls_header.removeClass('open');
-          
+
           // Clear possible errors
-          for(const key of FVSignup.page_keys) {
-            if(key == 'confirm') continue;
-            if(FVSignupLogic.is_page_disabled(key)) continue;
+          for (const key of FVSignup.page_keys) {
+            if (key == 'confirm') continue;
+            if (FVSignupLogic.is_page_disabled(key)) continue;
             FVSignupLogic.check_page(key);
-          }      
+          }
         }
       }).fail(function (data) {
-          if (data.responseJSON && data.responseJSON.errors) {
-            let processed = false;
-            data.responseJSON.errors.forEach(function(error) {
-              let msg = FVSignupStorage.config.errors[error.type];
-              if (msg) {
-                alert(msg[lang]);
-                processed = true;
-                return false;
-              }
-            })
+        if (data.responseJSON && data.responseJSON.errors) {
+          let processed = false;
+          data.responseJSON.errors.forEach(function (error) {
+            let msg = FVSignupStorage.config.errors[error.type];
+            if (msg) {
+              alert(msg[lang]);
+              processed = true;
+              return false;
+            }
+          })
 
-            if (processed) return;
-          }
-        
-          FVSignup.com_error();
+          if (processed) return;
+        }
+
+        FVSignup.com_error();
       });
     })
   }
@@ -111,7 +111,7 @@ class FVSignupStorage {
     // Remove special module inputs
     inputs = inputs.not('.special-submit *');
 
-    for(const input of inputs) {
+    for (const input of inputs) {
       if (jQuery(input).attr('no-load') == 'true') continue;
       let value = '';
       if (signup_data[input.id] !== undefined) {
@@ -133,26 +133,26 @@ class FVSignupStorage {
     }
 
     // Handle special modules
-    jQuery('.special-submit').each(function() {
+    jQuery('.special-submit').each(function () {
       let module_id = jQuery(this).attr('module');
       let module = FVSignup.get_module(module_id)
-      if(module) module.load_from_server(signup_data);
+      if (module) module.load_from_server(signup_data);
     })
 
     FVSignupLogic.refresh_page();
   }
-  
+
   static page_loaded(key) {
-    let page = jQuery('.signup-page#'+key);
+    let page = jQuery('.signup-page#' + key);
     let inputs = page.find('input, textarea').not('[type="radio"]');
     inputs.change(function (evt) {
       FVSignupStorage.input_changed(evt.target);
     })
 
-    for(const input of inputs) {
+    for (const input of inputs) {
       if (input.id == 'gdpr_accept') continue;
       let value;
-      if (value = localStorage.getItem(this.profile+'.'+input.id)) {
+      if (value = localStorage.getItem(this.profile + '.' + input.id)) {
         switch (input.type) {
           case 'checkbox':
             input.checked = value == 'true';
@@ -199,6 +199,6 @@ class FVSignupStorage {
 
   static input_changed(input) {
     let value = input.type == 'checkbox' ? input.checked : input.value;
-    localStorage.setItem(this.profile+'.'+input.id, value);
+    localStorage.setItem(this.profile + '.' + input.id, value);
   }
 }

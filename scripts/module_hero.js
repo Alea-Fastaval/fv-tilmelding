@@ -36,24 +36,24 @@ class FVSignupModuleHero {
     let top_row = jQuery('<tr><td></td></tr>');
     for (let day = 3; day <= 7; day++) {
       let day_text = FVSignup.uc_first(FVSignup.get_weekday(day));
-      top_row.append('<td>'+day_text+'</td>');
+      top_row.append('<td>' + day_text + '</td>');
     }
     table_body.append(top_row);
 
-    for(const time_slot of this.config.times) {
+    for (const time_slot of this.config.times) {
       let time_row = jQuery('<tr></tr>');
-      time_row.append('<td>'+time_slot.text[lang]+'</td>');
+      time_row.append('<td>' + time_slot.text[lang] + '</td>');
       let col = 0;
       if (!isNaN(time_slot.skip)) {
-        while(col < time_slot.skip) {
+        while (col < time_slot.skip) {
           time_row.append('<td></td>');
           col++;
         }
       }
-      while(col < 5) {
-        let day_text = FVSignup.uc_first(FVSignup.get_weekday(col+3));
+      while (col < 5) {
+        let day_text = FVSignup.uc_first(FVSignup.get_weekday(col + 3));
         time_row.append(`<td class="hero-time-cell">
-          <input type="checkbox" id="hero:${col+3}-${time_slot.infosys_id}" submit-text="${day_text} ${time_slot.short_text[lang]}">
+          <input type="checkbox" id="hero:${col + 3}-${time_slot.infosys_id}" submit-text="${day_text} ${time_slot.short_text[lang]}">
         </td>`);
         col++;
       }
@@ -71,16 +71,16 @@ class FVSignupModuleHero {
 
     // Check if we have minimum selections
     let min = this.config.min_select;
-    if(this.element.find(':checked').length < min) {
+    if (this.element.find(':checked').length < min) {
       let error_text = this.config.min_error[lang];
       this.error_div.append(`<p>${error_text.replace("#", min)}</p>`);
-      
+
       return [{
         type: 'min_selection',
         module: 'hero',
       }]
     }
-    
+
     // No errors
     return [];
   }

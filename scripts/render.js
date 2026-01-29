@@ -4,47 +4,47 @@ class FVSignupRender {
   static navigation(pages, keys, navigation) {
     let lang = fv_signup_settings.lang;
 
-    keys.forEach( key => {
-      let slug = "<div page-id='"+key+"' class='loading'>"+pages[key].slug[lang]+"</div>";
-      navigation.append(slug);    
+    keys.forEach(key => {
+      let slug = "<div page-id='" + key + "' class='loading'>" + pages[key].slug[lang] + "</div>";
+      navigation.append(slug);
     })
   }
 
   static page(page, key, element, callback) {
     let lang = fv_signup_settings.lang;
-    
+
     let disabled = false;
     let logic = FVSignup.get_page(key).page_logic;
     if (logic && logic.default == 'disabled') disabled = true;
 
-    let page_div = element.find("div#"+key);
+    let page_div = element.find("div#" + key);
     if (!page_div.length) {
-      page_div = jQuery('<div id="'+key+'" class="signup-page"></div>');
+      page_div = jQuery('<div id="' + key + '" class="signup-page"></div>');
       if (disabled) page_div.addClass('disabled');
       page_div.hide();
       element.append(page_div);
     }
 
     page_div.empty();
-    page.title[lang] && page_div.append("<h2>"+page.title[lang]+"</h2>");
+    page.title[lang] && page_div.append("<h2>" + page.title[lang] + "</h2>");
 
     let module = false;
-    if (page.sections) page.sections.forEach(function(section) {
+    if (page.sections) page.sections.forEach(function (section) {
       let section_wrapper = jQuery('<div class="section-wrapper"></div>');
       page_div.append(section_wrapper);
 
-      if (section.section_id) section_wrapper.attr('id', 'page-section-'+section.section_id);
-      if (section.headline) section_wrapper.append("<h3>"+section.headline[lang]+"</h3>");
+      if (section.section_id) section_wrapper.attr('id', 'page-section-' + section.section_id);
+      if (section.headline) section_wrapper.append("<h3>" + section.headline[lang] + "</h3>");
 
       // Folding logic
       if (section.folding) {
         let section_content = jQuery('<div class="folding-content"></div>');
         section_wrapper.append(section_content);
-        
-        let  toggle = jQuery(`<div class="folding-text show">${section.folding.show[lang]}</div>`);
+
+        let toggle = jQuery(`<div class="folding-text show">${section.folding.show[lang]}</div>`);
         section_wrapper.append(toggle);
 
-        toggle.click(function() {
+        toggle.click(function () {
           section_content.toggle();
           toggle.text(section_content.is(":visible") ? section.folding.hide[lang] : section.folding.show[lang])
         })
@@ -73,9 +73,9 @@ class FVSignupRender {
       }
 
       // Render section items
-      if (section.items) section.items.forEach(function(item) {
+      if (section.items) section.items.forEach(function (item) {
         if (item.disabled) return;
-        FVSignupLogic.require_config(function() {
+        FVSignupLogic.require_config(function () {
           section_wrapper.append(InfosysSignupRender.render_element(item, lang, FVSignup.config));
         })
       })
@@ -90,7 +90,7 @@ class FVSignupRender {
       let prev_button = jQuery('<button></button>');
       prev_button.addClass('previous-button');
       prev_button.text(text);
-      prev_button.click(function() { FVSignupLogic.prev(); });
+      prev_button.click(function () { FVSignupLogic.prev(); });
       footer.append(prev_button);
     }
     if (key != FVSignup.last_page) {
@@ -98,11 +98,11 @@ class FVSignupRender {
       let next_button = jQuery('<button></button>');
       next_button.addClass('next-button');
       next_button.text(text);
-      next_button.click(function() {FVSignupLogic.next(); });
+      next_button.click(function () { FVSignupLogic.next(); });
       footer.append(next_button);
     }
 
-    let nav_button = jQuery("nav div[page-id='"+key+"']");
+    let nav_button = jQuery("nav div[page-id='" + key + "']");
     if (disabled) nav_button.addClass('disabled');
     nav_button.removeClass('loading');
     nav_button.addClass('ready');
@@ -114,14 +114,14 @@ class FVSignupRender {
   }
 
   static unknown_module(name, element) {
-    element.append('<p><strong>Unknown module '+name+'</strong></p>');
+    element.append('<p><strong>Unknown module ' + name + '</strong></p>');
   }
 
   static signup_footer(element) {
     let lang = FVSignup.get_lang();
     let text = FVSignup.config.payment_logo_text[lang];
     //let text = "Du kan betale din tilmelding med"
-    
+
     let branding = jQuery(`<div id="branding-section"></div>`);
     element.append(branding);
 
@@ -132,7 +132,7 @@ class FVSignupRender {
     branding.append(logo_wrapper);
 
     let logo_paths = FVSignup.get_logos();
-    logo_paths.forEach(function(logo_src){
+    logo_paths.forEach(function (logo_src) {
       let logo = jQuery(`<img src="${logo_src}"/>`);
       logo_wrapper.append(logo);
     });
