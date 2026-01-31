@@ -201,7 +201,7 @@ class FVSignupLogic {
       this.update_display_status(item_info, logic);
     }
 
-    // If this item is a date input, attach min/max and validation handler
+    // If this item is a date input, set min/max attributes (validation handled centrally)
     try {
       if (item?.type === 'date' && item.infosys_id) {
         const input = FVSignup.get_input(item.infosys_id);
@@ -212,57 +212,9 @@ class FVSignupLogic {
 
         input.attr('min', minDate);
         input.attr('max', today);
-
-        const wrapper = input.closest('.input-wrapper');
-
-        const showError = (type) => {
-          wrapper.find('.error-text').hide();
-          const el = wrapper.find('.error-text[error-type=' + type + ']');
-          if (el.length) {
-            el.show();
-            wrapper.addClass('error');
-          } else {
-            wrapper.removeClass('error');
-          }
-        };
-
-        const clearErrors = () => {
-          wrapper.find('.error-text').hide();
-          wrapper.removeClass('error');
-        };
-
-        input.on('input change', function () {
-          const val = input.val();
-
-          if (!val) {
-            if (input.prop('required') || wrapper.hasClass('required')) {
-              showError('required');
-            } else {
-              clearErrors();
-            }
-            return;
-          }
-
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(val) || isNaN(new Date(val).getTime())) {
-            showError('invalid_date');
-            return;
-          }
-
-          if (val < minDate) {
-            showError('date_too_old');
-            return;
-          }
-
-          if (val > today) {
-            showError('date_too_future');
-            return;
-          }
-
-          clearErrors();
-        });
       }
     } catch (e) {
-      console.error('Failed to init date validation', e);
+      console.error('Failed to init date attributes', e);
     }
   }
 
@@ -450,12 +402,159 @@ class FVSignupLogic {
 
       // Special logic for inputs
       let input = FVSignup.get_input(item.infosys_id);
+      // If telephone field, restrict allowed characters and hint input mode
+      try {
+        if (item.type === 'telephone' || item.type === 'tele' || item.type === 'tel') {
+          input.attr('inputmode', 'tel');
+          input.attr('pattern', '[0-9+\\-]+');
+          input.on('input', function () {
+            try {
+              const cleaned = this.value.replaceAll(/[^0-9+\-]/g, '');
+              if (this.value !== cleaned) this.value = cleaned;
+            } catch (e) {
+              console.error('Telephone sanitize error', e);
+            }
+          });
+        }
+      } catch (e) {
+        console.error('Failed to init telephone constraints', e);
+      }
       if (item.excludes) this.init_exclude_item(item, input);
       if (item.autocomplete) this.init_autocomplete(item, input);
+      // Attach debounced per-input validation so only this field updates on edit
+      try {
+        if (input.length > 0) {
+          input.on('input', function () {
+            try {
+              const $el = jQuery(this);
+              const existing = $el.data('validationTimer');
+              if (existing) clearTimeout(existing);
+              const timer = setTimeout(function () {
+                FVSignupLogic.check_input(item.infosys_id);
+                $el.removeData('validationTimer');
+              }, 300);
+              $el.data('validationTimer', timer);
+            } catch (e) {
+              console.error('Validation debounce error', e);
+            }
+          });
+
+          input.on('change', function () {
+            FVSignupLogic.check_input(item.infosys_id);
+          });
+        }
+      } catch (e) {
+        console.error('Failed to attach per-input validation listener', e);
+      }
     } else if (item.text_id) {
       // Display logic for text items
       this.init_display_logic({ text: item.text_id }, item);
     }
+  }
+
+  static find_item_definition(infosys_id) {
+    for (const page_id of FVSignup.page_keys) {
+      const page = FVSignup.get_page(page_id);
+      if (!page.sections) continue;
+      for (const section of page.sections) {
+        if (!section.items) continue;
+        for (const item of section.items) {
+          if (item.infosys_id === infosys_id) return { page_id, item };
+        }
+      }
+    }
+    return null;
+  }
+
+  static update_single_error_display(infosys_id, errors) {
+    const input = FVSignup.get_input(infosys_id);
+    const wrapper = input.closest('.input-wrapper');
+    wrapper.find('.error-text').hide();
+    wrapper.removeClass('error');
+    if (errors && errors.length > 0) {
+      const type = errors[0].type || errors[0];
+      const el = wrapper.find('.error-text[error-type=' + type + ']');
+      if (el.length) {
+        el.show();
+        wrapper.addClass('error');
+      }
+    }
+  }
+
+  static check_input(infosys_id) {
+    const def = this.find_item_definition(infosys_id);
+    if (!def) return [];
+    const item = def.item;
+    const input = FVSignup.get_input(infosys_id);
+    if (input.length === 0 || input.prop('disabled')) return [];
+
+    const errors = [];
+    const val = input.val();
+
+    // Required
+    let isRequired = item.required || false;
+    if (item.required_if) {
+      if (!Array.isArray(item.required_if)) item.required_if = [item.required_if];
+      let con_req = false;
+      for (const rule of item.required_if.values()) {
+        con_req = this.check_rule(rule, con_req);
+      }
+      isRequired = isRequired || con_req;
+    }
+    if (isRequired) {
+      if (item.type == 'checkbox') {
+        if (!input.prop('checked')) errors.push({ id: infosys_id, type: 'required' });
+      } else if (!val) errors.push({ id: infosys_id, type: 'required' });
+    }
+
+    // Equals
+    if (item.equals) {
+      const other = FVSignup.get_input(item.equals);
+      if (input.val() != other.val()) errors.push({ id: infosys_id, type: 'match' });
+    }
+
+    // Excludes
+    if (item.excludes && input.attr('type') == 'checkbox' && input.prop('checked')) {
+      for (const exclude of item.excludes) {
+        const other = FVSignup.get_input(exclude);
+        if (other.attr('type') == 'checkbox' && other.prop('checked')) {
+          errors.push({ id: infosys_id, type: 'excludes', other: exclude });
+        }
+      }
+    }
+
+    // Autocomplete exhaustive
+    if (item.autocomplete?.mode == 'exhaustive' && FVSignup.get_input(item.infosys_id + '-display').val() != '') {
+      let list = FVSignup.config.autocomplete[item.autocomplete.list];
+      let lang = FVSignup.get_lang();
+      let input_text = input.closest('.input-wrapper').find('input[type=text]');
+      let match = false;
+      for (const option of Object.values(list)) {
+        let text = option[lang] ? option[lang].toLowerCase() : (option.da ? option.da.toLowerCase() : '');
+        if (text == input_text.val().toLowerCase()) {
+          match = true;
+          break;
+        }
+      }
+      if (!match) errors.push({ id: infosys_id, type: 'not_on_list' });
+    }
+
+    // Date checks
+    if (item.type === 'date') {
+      if (val) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(val) || Number.isNaN(new Date(val).getTime())) {
+          errors.push({ id: infosys_id, type: 'invalid_date' });
+        } else {
+          const minDate = '1930-01-01';
+          const today = new Date().toISOString().slice(0, 10);
+          if (val < minDate) errors.push({ id: infosys_id, type: 'date_too_old' });
+          else if (val > today) errors.push({ id: infosys_id, type: 'date_too_future' });
+        }
+      }
+    }
+
+    this.update_single_error_display(infosys_id, errors);
+    return errors;
   }
 
   static init_exclude_item(item, input) {
@@ -584,7 +683,6 @@ class FVSignupLogic {
   }
 
   // TODO
-  // Mobil must be number
   static check_page(page_id) {
     let page = FVSignup.get_page(page_id);
     let errors = [];
@@ -619,11 +717,9 @@ class FVSignupLogic {
               missing = false;
               return false;
             }
-          } else {
-            if (input.val() !== '') {
-              missing = false;
-              return false;
-            }
+          } else if (input.val() !== '') {
+            missing = false;
+            return false;
           }
           return true;
         });
@@ -659,7 +755,7 @@ class FVSignupLogic {
         if (item.required || con_req) {
           let status = item.type == 'checkbox' ? input.prop('checked') : input.val();
 
-          if (item.autocomplete && item.autocomplete.mode == "exhaustive") {
+          if (item.autocomplete?.mode == "exhaustive") {
             let text_input = FVSignup.get_input(item.infosys_id + "-display");
             status = text_input.val();
           }
@@ -675,10 +771,7 @@ class FVSignupLogic {
         if (item.equals) {
           let compare = FVSignup.get_input(item.equals);
           if (input.val() != compare.val()) {
-            errors.push({
-              id: item.infosys_id,
-              type: 'match',
-            });
+            errors.push({ id: item.infosys_id, type: 'match', });
           }
         }
         // Exclusive picks like entry partout and entry single days
@@ -720,8 +813,7 @@ class FVSignupLogic {
           }
         }
         if (
-          item.autocomplete &&
-          item.autocomplete.mode == "exhaustive" &&
+          item.autocomplete?.mode == "exhaustive" &&
           FVSignup.get_input(item.infosys_id + "-display").val() != ""
         ) {
           let list = FVSignup.config.autocomplete[item.autocomplete.list];
@@ -745,6 +837,21 @@ class FVSignupLogic {
               id: item.infosys_id,
               type: 'not_on_list',
             });
+          }
+        }
+
+        // Date checks for page validation (ensure check_page catches date errors)
+        if (item.type === 'date') {
+          const val = input.val();
+          if (val) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(val) || Number.isNaN(new Date(val).getTime())) {
+              errors.push({ id: item.infosys_id, type: 'invalid_date' });
+            } else {
+              const minDate = '1930-01-01';
+              const today = new Date().toISOString().slice(0, 10);
+              if (val < minDate) errors.push({ id: item.infosys_id, type: 'date_too_old' });
+              else if (val > today) errors.push({ id: item.infosys_id, type: 'date_too_future' });
+            }
           }
         }
       }

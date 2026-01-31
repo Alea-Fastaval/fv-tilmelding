@@ -179,13 +179,13 @@ class FVSignupPayment {
       this.get_info(),
       function (response) {
         button.prop('disabled', false);
-        button.prop('vlaue', FVSignupPayment.config.pay_button[lang]);
+        button.prop('value', FVSignupPayment.config.pay_button[lang]);
 
         window.open(response.url, '_blank').focus();
       },
       function (response) {
         button.prop('disabled', false);
-        button.prop('vlaue', FVSignupPayment.config.pay_button[lang]);
+        button.prop('value', FVSignupPayment.config.pay_button[lang]);
 
         if (response.message == 'no payment needed') {
           alert(FVSignupPayment.config.already_paid[FVSignup.get_lang()])
@@ -279,7 +279,7 @@ class FVSignupPayment {
     this.explanation_div.append(pay_button);
     pay_button.on('click', function () {
       pay_button.prop('disabled', true);
-      pay_button.prop('vlaue', FVSignupPayment.config.wait[lang]);
+      pay_button.prop('value', FVSignupPayment.config.wait[lang]);
 
       FVSignupPayment.goto_payment(pay_button);
     });

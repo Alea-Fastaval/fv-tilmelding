@@ -3,10 +3,6 @@
 class FVSignupModulePronouns {
 
   static single_pronouns = {
-    none: {
-      text: { en: "None", da: "Ingen" },
-      default: true
-    },
     ns: { // Neutral Subject
       text: { en: "They", da: "De" },
     },
@@ -27,6 +23,7 @@ class FVSignupModulePronouns {
     },
     ask: {
       text: { en: "Ask me", da: "Spørg mig" },
+      default: true
     }
   }
 
@@ -78,7 +75,7 @@ class FVSignupModulePronouns {
     let val = this.pronoun1.val()
     let part2_hidden = this.pronoun2.is(':hidden');
 
-    if (val == "none" || val == "ask") {
+    if (val == "ask") {
       this.pronoun2.hide()
       this.divider.hide()
       this.pronoun2.val('')
@@ -116,7 +113,7 @@ class FVSignupModulePronouns {
   static get_submission() {
     let val = this.pronoun1.val()
 
-    if (val != "none" && val != "ask") {
+    if (val != "ask") {
       val += this.pronoun2.val()
     }
 
@@ -131,7 +128,7 @@ class FVSignupModulePronouns {
     }[lang]
 
     let value = entry.value
-    if (value == "ask" || value == "none") {
+    if (value == "ask") {
       return [text, this.single_pronouns[value].text[lang]]
     }
 
@@ -157,7 +154,7 @@ class FVSignupModulePronouns {
   static load_from_server(data) {
     let value = data.pronouns
 
-    if (value == "ask" || value == "none") {
+    if (value == "ask") {
       this.pronoun1.val(value)
       this.change1()
       return
@@ -184,7 +181,7 @@ class FVSignupModulePronouns {
       }
     }
 
-    this.pronoun1.val("none")
+    this.pronoun1.val("ask")
     this.change1()
   }
 }
