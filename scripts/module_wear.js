@@ -131,7 +131,9 @@ class FVSignupModuleWear {
       }
 
       // Add selection elements
-      if (sorting.length != 0) {
+      if (sorting.length == 0) {
+        this.update_picture(wear_div);
+      } else {
         let selection_wrapper = jQuery('<div class="wear-selection-wrapper"></div>');
         let first = true;
         let first_select;
@@ -157,8 +159,6 @@ class FVSignupModuleWear {
         }
         wear_content.append(selection_wrapper);
         first_select.change();
-      } else {
-        this.update_picture(wear_div);
       }
 
       // Set header width to match number of attributes
@@ -187,18 +187,18 @@ class FVSignupModuleWear {
 
         let amount_input = amount_wrapper.find('input');
         amount_input.change(function () {
-          let amount = parseInt(amount_input.val());
+          let amount = Number.parseInt(amount_input.val());
 
           // Correct input value
-          if (isNaN(amount) || amount < 1) amount = 1;
+          if (Number.isNaN(amount) || amount < 1) amount = 1;
           if (amount > max) amount = max;
           amount_input.val(amount);
         })
 
         amount_wrapper.find('button').click(function (evt) {
           let button = jQuery(evt.delegateTarget);
-          let value = parseInt(amount_input.val());
-          value = isNaN(value) ? 1 : value;
+          let value = Number.parseInt(amount_input.val());
+          value = Number.isNaN(value) ? 1 : value;
           if (button.hasClass('increase')) {
             value = Math.min(value + 1, max);
           } else {
@@ -259,8 +259,10 @@ class FVSignupModuleWear {
             break;
 
           default: // Specific organizer category
-            let category = parseInt(FVSignup.get_input('organizercategory').val());
-            price_valid = price.user_category == category;
+            {
+              let category = Number.parseInt(FVSignup.get_input('organizercategory').val());
+              price_valid = price.user_category == category;
+            }
         }
         if (price_valid && (!price_value || price.price < price_value)) {
           price_type = price.user_category;
@@ -269,13 +271,13 @@ class FVSignupModuleWear {
       }
 
       // Update price for item
-      if (price_value !== undefined) {
+      if (price_value === undefined) {
+        wear_element.hide();
+        wear_element.attr('price-category', 'none');
+      } else {
         wear_element.find('h3 span.wear-price').text(price_value);
         wear_element.attr('price-category', price_type);
         wear_element.show();
-      } else {
-        wear_element.hide();
-        wear_element.attr('price-category', 'none');
       }
     })
   }
@@ -326,7 +328,7 @@ class FVSignupModuleWear {
 
     let selections = {};
     wear_element.find('select').each(function () {
-      selections[jQuery(this).attr('wear-attribute')] = parseInt(jQuery(this).val());
+      selections[jQuery(this).attr('wear-attribute')] = Number.parseInt(jQuery(this).val());
     })
 
     for (const [id, image] of Object.entries(wear_item.images)) {
@@ -335,7 +337,7 @@ class FVSignupModuleWear {
         if (type == 'special') continue;
         if (!image.attributes[type].includes(selections[type])) diff = true;
       }
-      if (diff == false) {
+      if (!diff) {
         wear_element.find('.wear-item-image-wrapper img').attr('src', FVSignup.get_infosys_url() + encodeURI(image.image_file));
         return;
       }
@@ -364,7 +366,7 @@ class FVSignupModuleWear {
     let amount = wear_element.find('input.wear-amount').val();
 
     // Price
-    let price = parseInt(wear_element.find('h3 span.wear-price').text());
+    let price = Number.parseInt(wear_element.find('h3 span.wear-price').text());
     let price_category = wear_element.attr('price-category');
 
     let new_row = this.create_order_row(wear_id, name, attributes, amount, price, price_category);
@@ -389,11 +391,11 @@ class FVSignupModuleWear {
           }
         })
         if (!diff) same_attributes = jQuery(this);
-        same_count += parseInt(jQuery(this).find('input.wear-amount').val());
+        same_count += Number.parseInt(jQuery(this).find('input.wear-amount').val());
       })
     }
 
-    if (max_order && same_count + parseInt(amount) > max_order) {
+    if (max_order && same_count + Number.parseInt(amount) > max_order) {
       alert(`${this.config.max_error[lang]} ${max_order} ${name}`);
       return;
     }

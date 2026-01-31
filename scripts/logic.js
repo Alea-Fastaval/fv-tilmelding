@@ -149,7 +149,7 @@ class FVSignupLogic {
       for (const [index, section] of page.sections.entries()) {
         this.init_display_logic({ page: page_id, section: index }, section);
         for (const item of section.items ?? []) {
-          if (page.disabled_items && page.disabled_items.includes(item.infosys_id)) {
+          if (page.disabled_items?.includes(item.infosys_id)) {
             this.set_display_status({ input: item.infosys_id }, 'disabled');
           } else {
             this.init_item_logic(item);
@@ -157,14 +157,12 @@ class FVSignupLogic {
 
           if (!Array.isArray(item.options)) continue;
           for (const [index, option] of item.options.entries()) {
-            if (page.disabled_options && page.disabled_options[item.infosys_id] && page.disabled_options[item.infosys_id].includes(option.value)) {
+            if (page.disabled_options?.[item.infosys_id]?.includes(option.value)) {
               this.set_display_status({ input: `${item.infosys_id}-${index}` }, 'disabled');
+            } else if (item.type == "select") {
+              this.init_display_logic({ option: `${item.infosys_id}-${index}` }, option);
             } else {
-              if (item.type == "select") {
-                this.init_display_logic({ option: `${item.infosys_id}-${index}` }, option);
-              } else {
-                this.init_display_logic({ input: `${item.infosys_id}-${index}` }, option);
-              }
+              this.init_display_logic({ input: `${item.infosys_id}-${index}` }, option);
             }
           }
         }
@@ -185,23 +183,87 @@ class FVSignupLogic {
 
   static init_display_logic(item_info, item) {
     let logic = item.display_logic;
-    if (!logic) return;
+    if (logic) {
+      for (const rule of logic) {
+        let input = rule.input;
+        if (rule.type == "age") {
+          input = "birthdate";
+        }
 
-    for (const rule of logic) {
-      let input = rule.input;
-      if (rule.type == "age") {
-        input = "birthdate";
+        if (!input) continue;
+
+        // Update page status when an input that's part of the rule changes
+        FVSignup.get_input(input).change(function () {
+          FVSignupLogic.update_display_status(item_info, logic);
+        });
       }
 
-      if (!input) continue;
-
-      // Update page status when an input that's part of the rule changes
-      FVSignup.get_input(input).change(function () {
-        FVSignupLogic.update_display_status(item_info, logic);
-      });
+      this.update_display_status(item_info, logic);
     }
 
-    this.update_display_status(item_info, logic);
+    // If this item is a date input, attach min/max and validation handler
+    try {
+      if (item?.type === 'date' && item.infosys_id) {
+        const input = FVSignup.get_input(item.infosys_id);
+        if (input.length === 0) return;
+
+        const today = new Date().toISOString().slice(0, 10);
+        const minDate = '1930-01-01';
+
+        input.attr('min', minDate);
+        input.attr('max', today);
+
+        const wrapper = input.closest('.input-wrapper');
+
+        const showError = (type) => {
+          wrapper.find('.error-text').hide();
+          const el = wrapper.find('.error-text[error-type=' + type + ']');
+          if (el.length) {
+            el.show();
+            wrapper.addClass('error');
+          } else {
+            wrapper.removeClass('error');
+          }
+        };
+
+        const clearErrors = () => {
+          wrapper.find('.error-text').hide();
+          wrapper.removeClass('error');
+        };
+
+        input.on('input change', function () {
+          const val = input.val();
+
+          if (!val) {
+            if (input.prop('required') || wrapper.hasClass('required')) {
+              showError('required');
+            } else {
+              clearErrors();
+            }
+            return;
+          }
+
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(val) || isNaN(new Date(val).getTime())) {
+            showError('invalid_date');
+            return;
+          }
+
+          if (val < minDate) {
+            showError('date_too_old');
+            return;
+          }
+
+          if (val > today) {
+            showError('date_too_future');
+            return;
+          }
+
+          clearErrors();
+        });
+      }
+    } catch (e) {
+      console.error('Failed to init date validation', e);
+    }
   }
 
   static update_display_status(item_info, logic) {
@@ -220,58 +282,31 @@ class FVSignupLogic {
     let compare_value, check_value;
 
     switch (rule.type) {
-      case 'default':
-        return rule.status;
-
-      case 'field_compare':
-        compare_value = input.val();
-        break;
-
-      case 'checkbox':
-        return input.prop('checked') ? rule.status : status;
-
-      case 'age':
-        compare_value = FVSignup.get_age();
-        break;
-
-      case 'config':
-        compare_value = FVSignup.config[rule.config];
-        break;
-
-      default:
-        console.error("Rule Logic, Unknown rule type", "Rule:", rule);
+      case 'default': return rule.status;
+      case 'field_compare': compare_value = input.val(); break;
+      case 'checkbox': return input.prop('checked') ? rule.status : status;
+      case 'age': compare_value = FVSignup.get_age(); break;
+      case 'config': compare_value = FVSignup.config[rule.config]; break;
+      default: console.error("Rule Logic, Unknown rule type", "Rule:", rule);
     }
 
     check_value = rule.value;
     if (rule.value.match) {
       let match = rule.value.match(/config.(.+)/);
-      if (match && match[1]) {
+      if (match?.[1]) {
         check_value = FVSignup.config[match[1]];
       }
     }
 
     if (rule.compare) {
       switch (rule.compare) {
-        case 'equals':
-          return compare_value == check_value ? rule.status : status;
-
-        case 'not_equals':
-          return compare_value != check_value ? rule.status : status;
-
-        case 'greater':
-          return compare_value > check_value ? rule.status : status;
-
-        case 'greater_equal':
-          return compare_value >= check_value ? rule.status : status;
-
-        case 'less':
-          return compare_value < check_value ? rule.status : status;
-
-        case 'less_equal':
-          return compare_value <= check_value ? rule.status : status;
-
-        default:
-          console.error("Rule Logic, Unknown comparisson", "Rule:", rule);
+        case 'equals': return compare_value == check_value ? rule.status : status;
+        case 'not_equals': return compare_value == check_value ? status : rule.status;
+        case 'greater': return compare_value > check_value ? rule.status : status;
+        case 'greater_equal': return compare_value >= check_value ? rule.status : status;
+        case 'less': return compare_value < check_value ? rule.status : status;
+        case 'less_equal': return compare_value <= check_value ? rule.status : status;
+        default: console.error("Rule Logic, Unknown comparisson", "Rule:", rule);
       }
     }
     return null;

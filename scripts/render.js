@@ -15,7 +15,7 @@ class FVSignupRender {
 
     let disabled = false;
     let logic = FVSignup.get_page(key).page_logic;
-    if (logic && logic.default == 'disabled') disabled = true;
+    if (logic?.default == 'disabled') disabled = true;
 
     let page_div = element.find("div#" + key);
     if (!page_div.length) {

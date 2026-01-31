@@ -101,14 +101,11 @@ class FVSignup {
     this.page_wrapper = jQuery("<div id='signup-pages'></div>");
     this.signup_content.append(this.page_wrapper);
 
-    // this.signup_footer = jQuery(`<div id="signup-footer"></div>`);
-    // this.signup_content.append(this.signup_footer);
 
     this.load_config('main', function (config) {
       FVSignup.config = config;
       FVSignup.config.loaded = true;
       FVSignupLogic.fire('config_ready');
-      // FVSignupRender.signup_footer(FVSignup.signup_footer);
     });
     FVSignupStorage.init(this.storage_controls);
     this.load_page_list();
@@ -139,7 +136,7 @@ class FVSignup {
   static parse_page_list(pages) {
     // Sort page keys by ordering
     let keys = Object.keys(pages);
-    this.page_keys = keys.sort((a, b) => {
+    this.page_keys = keys.toSorted((a, b) => {
       return pages[a].order - pages[b].order;
     })
 
@@ -256,10 +253,10 @@ class FVSignup {
   }
 
   static get_age(date) {
-    let birthdate = new Date(this.get_input(this.config.birth).val().replace(/-/g, "/") + " 00:00:00");
+    let birthdate = new Date(this.get_input(this.config.birth).val().replaceAll('-', "/") + " 00:00:00");
     if (birthdate.toString() == 'Invalid Date') return 0;
 
-    date = date ? date : new Date(this.config.con_start.replace(/-/g, "/"));
+    date = date || new Date(this.config.con_start.replaceAll('-', "/"));
 
     // How many years ago?
     let age = date.getFullYear() - birthdate.getFullYear();
@@ -292,19 +289,10 @@ class FVSignup {
 
   static get_participant_type() {
     switch (this.get_input('participant').val()) {
-      case 'Juniordeltager':
-        let plus = this.get_input('junior:plus').prop('checked');
-        return plus ? 'junior-plus' : 'junior';
-
-      case 'Deltager':
-        return 'deltager';
-
-      case 'Arrangør':
-        return 'organizer';
-
-      default:
-        console.error('Unknown participant type');
-        return 'unknown';
+      case 'Juniordeltager': return this.get_input('junior:plus').prop('checked') ? 'junior-plus' : 'junior';
+      case 'Deltager': return 'deltager';
+      case 'Arrangør': return 'organizer';
+      default: console.error('Unknown participant type'); return 'unknown';
     }
   }
 

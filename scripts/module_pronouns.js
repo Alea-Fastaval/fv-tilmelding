@@ -163,14 +163,14 @@ class FVSignupModulePronouns {
       return
     }
 
-    if (value && value.length == 2 && this.single_pronouns[value]) {
+    if (value?.length == 2 && this.single_pronouns[value]) {
       this.pronoun1.val(value)
       this.change1()
       this.pronoun2.val("")
       return
     }
 
-    if (value && value.length == 4) {
+    if (value?.length == 4) {
       let part1 = value.substring(0, 2)
       let part2 = value.substring(2, 4)
 
@@ -186,7 +186,6 @@ class FVSignupModulePronouns {
 
     this.pronoun1.val("none")
     this.change1()
-    return
   }
 }
 

@@ -10,7 +10,7 @@ indent_style = space
 indent_size = 2
 
 [*.js]
-quote_type = double
+quote_type = single
 
 [*.{json,yml,yaml}]
 trim_trailing_whitespace = false

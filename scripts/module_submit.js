@@ -118,9 +118,9 @@ class FVSignupModuleSubmit {
     if (this.element == undefined) return undefined;
 
     // Get id and pass if we have them
-    let id = parseInt(this.element.find('input#id').val());
+    let id = Number.parseInt(this.element.find('input#id').val());
     let pass = this.element.find('input#pass').val();
-    if (id && !isNaN(id) && pass) {
+    if (id && !Number.isNaN(id) && pass) {
       return {
         id: id,
         pass: pass,
@@ -205,7 +205,7 @@ class FVSignupModuleSubmit {
 
         // Check if input is empty and whether we need to submit it anyway
         let no_empty = input.attributes['no-submit-empty'];
-        if (no_empty && no_empty.value == 'true' && (input.value == "" || parseInt(input.value) === 0)) continue;
+        if (no_empty?.value == 'true' && (input.value == "" || Number.parseInt(input.value) === 0)) continue;
 
         submission[key][input.id] = input.value;
       }
@@ -232,7 +232,6 @@ class FVSignupModuleSubmit {
         FVSignupModuleSubmit.submit_success(response);
       },
       error: function (request, status, error) {
-        //console.log(request);
         if (request.responseJSON) {
           FVSignupModuleSubmit.render_errors(request.responseJSON.result.errors);
           FVSignupModuleSubmit.signup_data.empty();
@@ -366,41 +365,43 @@ class FVSignupModuleSubmit {
           switch (true) {
             case wrapper.hasClass('activity-choice'): // Activity selection
               // Activity title
-              let top_row = wrapper.closest('.activity-row').prev();
-              text = top_row.find('.title-wrapper').text() + " - ";
+              {
+                let top_row = wrapper.closest('.activity-row').prev();
+                text = top_row.find('.title-wrapper').text() + " - ";
 
-              // Get times from all parts
-              if (wrapper.attr('multiblock')) {
-                let run_id = wrapper.attr('run-id');
-                wrapper = jQuery(`.activity-choice[run-id=${run_id}]`);
-              }
-
-              // Activity time text
-              let times = [];
-              wrapper.each(function () {
-                let element = jQuery(this);
-                let day = element.closest('table').attr('activity-day');
-                let time_text = FVSignup.uc_first(FVSignup.get_weekday(day)) + " ";
-                let time = new Date(parseInt(element.attr('run-start')) * 1000);
-                time_text += (time.getHours() + "").padStart(2, '0') + ":" + (time.getMinutes() + "").padStart(2, '0');
-                times.push(time_text);
-              });
-              text += times.join(', ');
-
-              // Activity priority value
-              let choices = FVSignupLogicActivities.config.choices;
-              if (entry.value <= choices.prio[lang].length) {
-                value = choices.prio[lang][entry.value - 1];
-              } else {
-                let type = wrapper.attr('activity-type');
-                value = choices.gm[type] ? choices.gm[type][lang] : choices.gm.default[lang];
-
-                let index = entry.value - choices.prio[lang].length;
-                if (index > 1) {
-                  value += " " + choices.prio[lang][index - 2];
+                // Get times from all parts
+                if (wrapper.attr('multiblock')) {
+                  let run_id = wrapper.attr('run-id');
+                  wrapper = jQuery(`.activity-choice[run-id=${run_id}]`);
                 }
+
+                // Activity time text
+                let times = [];
+                wrapper.each(function () {
+                  let element = jQuery(this);
+                  let day = element.closest('table').attr('activity-day');
+                  let time_text = FVSignup.uc_first(FVSignup.get_weekday(day)) + " ";
+                  let time = new Date(Number.parseInt(element.attr('run-start')) * 1000);
+                  time_text += (time.getHours() + "").padStart(2, '0') + ":" + (time.getMinutes() + "").padStart(2, '0');
+                  times.push(time_text);
+                });
+                text += times.join(', ');
+
+                // Activity priority value
+                let choices = FVSignupLogicActivities.config.choices;
+                if (entry.value <= choices.prio[lang].length) {
+                  value = choices.prio[lang][entry.value - 1];
+                } else {
+                  let type = wrapper.attr('activity-type');
+                  value = choices.gm[type] ? choices.gm[type][lang] : choices.gm.default[lang];
+
+                  let index = entry.value - choices.prio[lang].length;
+                  if (index > 1) {
+                    value += " " + choices.prio[lang][index - 2];
+                  }
+                }
+                break;
               }
-              break;
 
             case wrapper.hasClass('input-type-hidden'): // Hidden automaic entries like ticket fee
               text = input.attr('text');
@@ -412,9 +413,11 @@ class FVSignupModuleSubmit {
               break;
 
             default: // Radio buttons
-              text = wrapper.find('p').text();
-              let option = wrapper.find('input[value=' + value + '][name="' + entry.key + '"]');
-              value = jQuery('label[for=' + option.attr('id').replaceAll(':', '\\:') + ']').text();
+              {
+                text = wrapper.find('p').text();
+                let option = wrapper.find('input[value=' + value + '][name="' + entry.key + '"]');
+                value = jQuery('label[for=' + option.attr('id').replaceAll(':', '\\:') + ']').text();
+              }
           }
         } else if (input.attr('submit-text')) { // Input has special submit text instead of label
           text = input.attr('submit-text');
@@ -434,12 +437,10 @@ class FVSignupModuleSubmit {
         } else if (entry.price) { // Some special cases for price display
           if (entry.value == 'on') {
             value = entry.price + " " + FVSignup.config.dkk[lang];
+          } else if (entry.single_price) {
+            text += ` (${entry.single_price} ${FVSignup.config.dkk[lang]})`
           } else {
-            if (entry.single_price) {
-              text += ` (${entry.single_price} ${FVSignup.config.dkk[lang]})`
-            } else {
-              text += ` (${entry.price} ${FVSignup.config.dkk[lang]})`
-            }
+            text += ` (${entry.price} ${FVSignup.config.dkk[lang]})`
           }
         } else if (input.prop('tagName') === 'SELECT') { // Select input without price
           value = input.find('option:selected').text();
@@ -511,7 +512,6 @@ class FVSignupModuleSubmit {
         FVSignupModuleSubmit.confirm_success(response);
       },
       error: function (request, status, error) {
-        //console.log(request);
         if (request.responseJSON) {
           FVSignupModuleSubmit.status.empty();
           FVSignupModuleSubmit.render_errors(request.responseJSON.result.errors);
@@ -558,7 +558,7 @@ class FVSignupModuleSubmit {
     this.confirm_page.find('.display-paid-total').text(response.result.paid);
 
     // Calculate and set last payment
-    let signup_end = new Date(FVSignup.config.signup_end.replace(/-/g, "/"));
+    let signup_end = new Date(FVSignup.config.signup_end.replaceAll('-', "/"));
     let tomorrow = new Date(Date.now() + 24 * 60 * 60);
     let payday = new Date(Math.max(signup_end.getTime(), tomorrow.getTime()));
     let payday_text = payday.getDate() + FVSignup.get_ordinal(payday.getDate()) + " " + FVSignup.get_month(payday.getMonth());
