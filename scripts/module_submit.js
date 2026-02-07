@@ -382,7 +382,7 @@ class FVSignupModuleSubmit {
                   let day = element.closest('table').attr('activity-day');
                   let time_text = FVSignup.uc_first(FVSignup.get_weekday(day)) + " ";
                   let time = new Date(Number.parseInt(element.attr('run-start')) * 1000);
-                  time_text += (time.getHours() + "").padStart(2, '0') + ":" + (time.getMinutes() + "").padStart(2, '0');
+                  time_text += (time.getUTCHours() + "").padStart(2, '0') + ":" + (time.getUTCMinutes() + "").padStart(2, '0');
                   times.push(time_text);
                 });
                 text += times.join(', ');

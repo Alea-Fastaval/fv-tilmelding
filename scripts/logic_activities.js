@@ -281,6 +281,17 @@ class FVSignupLogicActivities {
     // Check if we can sign up as GM
     let gm = this.check_gm(choice);
 
+    // If this run is GM-only, only allow toggling the GM choice (and only for eligible users)
+    if (choice.closest('.activity-cell').attr('gm-only') == 'true') {
+      if (!gm) return; // user not allowed to be GM here
+      let lang = fv_signup_settings.lang;
+      let prio_count = this.config.choices.prio[lang].length;
+      // toggle GM (prio_count + 1)
+      input.val(value == prio_count + 1 ? 0 : prio_count + 1);
+      input.change();
+      return;
+    }
+
     let lang = fv_signup_settings.lang;
     let prio_count = this.config.choices.prio[lang].length;
     let max = gm ? prio_count + 2 : prio_count;

@@ -110,6 +110,7 @@ class FVSignupModuleActivities {
         let flag = this.get_flag(activity.lang);
         let title = activity.title[lang] ? activity.title[lang] : activity.title.da;
         let full = false;
+        let gm_only = false;
         if (activity.max_signups) {
           if (run.signups >= activity.max_signups) {
             full = true;
@@ -117,6 +118,12 @@ class FVSignupModuleActivities {
           } else {
             title += ' (' + this.config.max_signup[lang].replace('#', activity.max_signups) + ')';
           }
+        } else if (typeof activity.max_players !== 'undefined' && activity.max_players === 0) {
+          // Activity configured with 0 max players -> players not allowed, only GMs
+          gm_only = true;
+          // Show GM text instead of "Full"
+          let gm_text = this.config.choices.gm[activity.type] ? this.config.choices.gm[activity.type][lang] : this.config.choices.gm.default[lang];
+          title += ' (' + gm_text + ')';
         }
         row_before.prepend('<td class="activity-title" rowspan="3">' + flag + '<div class="title-wrapper">' + title + '</div></td>');
 
@@ -137,6 +144,7 @@ class FVSignupModuleActivities {
 
         // Selection cell
         let select_cell = jQuery(`<td class="activity-cell" full="${full}" colspan="${end - start}"></td>`);
+        if (gm_only) select_cell.attr('gm-only', true);
         row_middle.append(select_cell);
 
         // Select input
