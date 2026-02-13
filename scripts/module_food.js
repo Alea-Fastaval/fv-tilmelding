@@ -47,26 +47,24 @@ class FVSignupModuleFood {
 
       for (const [cat_id, food_cat] of Object.entries(food_info.categories)) {
         let cat_split = food_cat[lang].split(':');
-
         let cat_text = cat_split[0];
 
+        let food = foods[cat_id];
+        
         let cell = selection_row.find(`td[cat="${cat_text}"]`)
-        let new_cell = false;
+
         if (cell.length == 0) {
           cell = jQuery(`<td cat="${cat_text}"></td>`);
+          if (food !== undefined) {
+            cell.append(`<div><strong>${cat_text}&nbsp;(${food_cat.price}&nbsp;${FVSignup.config.dkk[lang]})</strong></div>`);
+          }
           selection_row.append(cell);
-          new_cell = true;
           if (cat_split.length > 1) {
             cell.css('white-space', 'nowrap');
           }
         }
-
-        let food = foods[cat_id];
+        
         if (food === undefined) continue;
-
-        if (new_cell) {
-          cell.append(`<div><strong>${cat_text} (${food_cat.price} ${FVSignup.config.dkk[lang]})</strong></div>`);
-        }
 
         let checkbox_wrapper = InfosysSignupRender.render_checkbox({
           infosys_id: "food:" + food.id,

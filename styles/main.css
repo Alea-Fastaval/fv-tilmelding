@@ -345,6 +345,10 @@ div.input-wrapper.input-type-textarea textarea:focus {
   margin: 0;
 }
 
+#food_module #food-select-table .input-wrapper {
+  flex-wrap: nowrap;
+}
+
 /*----------------------------------------------------------------------------
     Together
 ----------------------------------------------------------------------------*/
