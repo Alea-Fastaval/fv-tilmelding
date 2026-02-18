@@ -90,6 +90,8 @@ class FVSignupModuleSubmit {
     let payment_text = this.config.payment_info[lang];
     payment_text = payment_text.replaceAll('[ID]', '<span class="display-id"></span>');
     payment_text = payment_text.replaceAll('[DUETOTAL]', '<span class="display-due-total"></span>');
+    payment_text = payment_text.replaceAll('[BANKFEE]', '<span class="display-bank-fee"></span>');
+    payment_text = payment_text.replaceAll('[BANKTOTAL]', '<span class="display-bank-total"></span>');
     payment_text = payment_text.replaceAll('[PAYDAY]', '<span class="display-payday"></span>');
     payment_text = payment_text.replaceAll('[PAYBUTTON]', pay_button[0].outerHTML);
     this.payment_div.append(payment_text);
@@ -554,13 +556,17 @@ class FVSignupModuleSubmit {
         this.extra_payment_div.hide();
       }
     }
+
+    let bank_fee = FVSignup.config.bank_fee;
     this.confirm_page.find('.display-due-total').text(due_total);
     this.confirm_page.find('.display-paid-total').text(response.result.paid);
+    this.confirm_page.find('.display-bank-fee').text(bank_fee);
+    this.confirm_page.find('.display-bank-total').text(due_total+bank_fee);
 
     // Calculate and set last payment
-    let signup_end = new Date(FVSignup.config.signup_end.replaceAll('-', "/"));
+    let paybyday = new Date(FVSignup.config.paybyday.replaceAll('-', "/"));
     let tomorrow = new Date(Date.now() + 24 * 60 * 60);
-    let payday = new Date(Math.max(signup_end.getTime(), tomorrow.getTime()));
+    let payday = new Date(Math.max(paybyday.getTime(), tomorrow.getTime()));
     let payday_text = payday.getDate() + FVSignup.get_ordinal(payday.getDate()) + " " + FVSignup.get_month(payday.getMonth());
     this.confirm_page.find('.display-payday').text(payday_text);
 
